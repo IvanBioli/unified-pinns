@@ -101,14 +101,14 @@ x_eval = interior.random_integration_points(eval_key, N=10 * N_Omega)
 alpha = 0.1
 y_star = lambda x: jnp.prod(jnp.sin(jnp.pi * x), keepdims=True)
 p_star = lambda x: x[0] * (1 - x[0]) * x[1] * (1 - x[1])
-u_star = lambda x: -(1. / alpha) * p_star(x)
+u_star = lambda x: (1. / alpha) * p_star(x)
 f = lambda x: dim * jnp.pi ** 2 * jnp.prod(jnp.sin(jnp.pi * x)) - u_star(x)
 y_data = lambda x: -2 * (x[0] * (1 - x[0]) + x[1] * (1 - x[1])) + y_star(x)
 
 # define ingredients for loss functions
 def residual_y(y_params, p_params, x):
     lap_y = laplace(y_model, argnum=1)(y_params, x)
-    return lap_y + f(x) - (1. / alpha) * p_model(p_params, x)
+    return lap_y + f(x) + (1. / alpha) * p_model(p_params, x)
 
 v_residual_y = jax.vmap(residual_y, (None, None, 0))
 
@@ -199,10 +199,6 @@ for iteration in range(100_000):
             )
 
     if method == "GN":
-        #print(f"J shape: {assemble_J(y_params, x_Omega).shape}")
-        #print(f"H shape: {assemble_H_bar(p_params, x_Omega).shape}")
-        #print(f"shape gramian: {assemble_gramian(y_params, p_params, x_Omega).shape}")
-        
         # autodiff magic
         loss, grads = jax.value_and_grad(loss_fct, argnums=(0, 1))(y_params, p_params, x_Omega)
         f_grads = ravel_pytree(grads)[0]
@@ -218,7 +214,6 @@ for iteration in range(100_000):
         # param update
         lr = 1e-2
         params = jax.tree.map(lambda K, dK: K - lr * dK, params, nat_grads)
-
         y_params, p_params = params
 
         
