@@ -69,7 +69,7 @@ class Hyperrectangle:
         self._dimension = len(self._l_bounds)
 
     def measure(self) -> float:
-        return jnp.product(self._r_bounds - self._l_bounds)
+        return jnp.prod(self._r_bounds - self._l_bounds)
 
     def random_integration_points(self, key: Any, N: int = 50):
         """
@@ -115,7 +115,7 @@ class Hyperrectangle:
             dimension of the Hyperrectangle.
         """
 
-        return jnp.product((x - self._l_bounds) * (x - self._r_bounds))
+        return jnp.prod((x - self._l_bounds) * (x - self._r_bounds))
 
 
 class HyperrectangleBoundary:
