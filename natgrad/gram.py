@@ -19,6 +19,7 @@ def gram_factory(
     residual,
     argnum_1=0,
     argnum_2=0,
+    splits=1,
 ):
     """
     ...
@@ -69,13 +70,9 @@ def gram_factory(
         jac_1 = jac(flat(unravel_1, argnum_1)(v_residual), argnum_1)
         par_1 = [param for param in params]  # copy!
         par_1[argnum_1] = f_params_1
-        J_1 = jac_1(*par_1, x=x)
+        J = jnp.zeros((len(f_params_2), len(f_params_1)))
 
-        # If avoidable, don't recompute
-        if argnum_1 == argnum_2:
-            J_2 = J_1
-
-        else:
+        if argnum_1 != argnum_2:
             # Determine autodiff for argnum_2
             if len(params[argnum_2]) > len(x):
                 jac = jacrev
@@ -86,8 +83,19 @@ def gram_factory(
             jac_2 = jac(flat(unravel_2, argnum_2)(v_residual), argnum_2)
             par_2 = [param for param in params]  # copy!
             par_2[argnum_2] = f_params_2
-            J_2 = jac_2(*par_2, x=x)
 
-        return 1.0 / len(x) * jnp.transpose(J_2) @ J_1
+        for x_tmp in jnp.array_split(x, splits):
+            J_1 = jac_1(*par_1, x=x_tmp)
+
+            # If avoidable, don't recompute
+            if argnum_1 == argnum_2:
+                J_2 = J_1
+
+            else:
+                J_2 = jac_2(*par_2, x=x_tmp)
+
+            J += jnp.transpose(J_2) @ J_1
+
+        return J / len(x)
 
     return gramian
