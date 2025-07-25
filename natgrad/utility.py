@@ -1,5 +1,6 @@
 import jax.numpy as jnp
-from jax import jit, vmap, tree_map
+from jax import jit, vmap
+from jax.tree_util import tree_map
 from jax.flatten_util import ravel_pytree
 
 

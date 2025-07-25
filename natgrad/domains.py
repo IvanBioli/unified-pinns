@@ -46,12 +46,12 @@ class Hyperrectangle:
 
         self._l_bounds = jnp.reshape(
             jnp.asarray(l_bounds, dtype=float),
-            newshape=(-1),
+            shape=(-1),
         )
 
         self._r_bounds = jnp.reshape(
             jnp.asarray(r_bounds, dtype=float),
-            newshape=(-1),
+            shape=(-1),
         )
 
         if len(self._l_bounds) != len(self._r_bounds):
